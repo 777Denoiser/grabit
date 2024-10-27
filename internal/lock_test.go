@@ -21,10 +21,10 @@ func TestNewLockInvalid(t *testing.T) {
 
 func TestNewLockValid(t *testing.T) {
 	path := test.TmpFile(t, `
-	[[Resource]]
-	Urls = ['http://localhost:123456/test.html']
-	Integrity = 'sha256-asdasdasd'
-	Tags = ['tag1', 'tag2']
+    [[Resource]]
+    Urls = ['http://localhost:123456/test.html']
+    Integrity = 'sha256-asdasdasd'
+    Tags = ['tag1', 'tag2']
 `)
 	lock, err := NewLock(path, false)
 	assert.Nil(t, err)
@@ -111,7 +111,7 @@ func TestDownload(t *testing.T) {
 		Urls = ['http://localhost:%d/test.html']
 		Integrity = 'sha256-vvV+x/U6bUC+tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE='`, port))
 	perm := "467"
-	strPerm := "-r--rw-rwx"
+	strPerm := "-r--r--r--"
 	lock, err := NewLock(path, false)
 	assert.Nil(t, err)
 	dir := test.TmpDir(t)
