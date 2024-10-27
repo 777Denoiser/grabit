@@ -111,7 +111,7 @@ func TestDownload(t *testing.T) {
 		Urls = ['http://localhost:%d/test.html']
 		Integrity = 'sha256-vvV+x/U6bUC+tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE='`, port))
 	perm := "467"
-	strPerm := "-r--r--r--"
+	strPerm := "-r--rw-rwx"
 	lock, err := NewLock(path, false)
 	assert.Nil(t, err)
 	dir := test.TmpDir(t)
