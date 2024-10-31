@@ -63,7 +63,7 @@ func getUrl(u string, fileName string, ctx context.Context) (string, error) {
 	return fileName, nil
 }
 
-// GetUrlWithDir downloads the given resource to a temporary file and returns the path to it.
+// GetUrlToDir downloads the given resource to a temporary file and returns the path to it.
 func GetUrlToDir(u string, targetDir string, ctx context.Context) (string, error) {
 	h := sha256.New()
 	h.Write([]byte(u))
