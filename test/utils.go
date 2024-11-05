@@ -4,29 +4,27 @@
 package test
 
 import (
-	"fmt"
 	"log"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TmpFile(t *testing.T, content string) string {
-	dir := t.TempDir()
-	name := filepath.Join(dir, fmt.Sprintf("test%d", rand.Int()))
-
-	// Write content directly without keeping file handle open
-	err := os.WriteFile(name, []byte(content), 0644)
+	f, err := os.CreateTemp(t.TempDir(), "test")
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	_, err = f.WriteString(content)
+	if err != nil {
+		t.Fatal(err)
+	}
+	name := f.Name()
+	t.Cleanup(func() { os.RemoveAll(name) })
 	return name
 }
 
