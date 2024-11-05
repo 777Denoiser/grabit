@@ -4,11 +4,11 @@
 package internal
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strconv"
 
 	toml "github.com/pelletier/go-toml/v2"
@@ -26,24 +26,24 @@ type config struct {
 	Resource []Resource
 }
 
-func NewLock(path string, create bool) (*Lock, error) {
-	if !create {
-		_, err := os.Stat(path)
-		if err != nil {
-			return nil, err
+func NewLock(path string, newOk bool) (*Lock, error) {
+	_, error := os.Stat(path)
+	if os.IsNotExist(error) {
+		if newOk {
+			return &Lock{path: path}, nil
+		} else {
+			return nil, fmt.Errorf("file '%s' does not exist", path)
 		}
 	}
-
 	var conf config
-	if !create {
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return nil, fmt.Errorf("cannot open file '%s': %s", path, err)
-		}
-		err = toml.Unmarshal(data, &conf)
-		if err != nil {
-			return nil, fmt.Errorf("invalid lock file '%s': %s", path, err)
-		}
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, error
+	}
+	d := toml.NewDecoder(file)
+	err = d.Decode(&conf)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Lock{path: path, conf: conf}, nil
@@ -182,19 +182,17 @@ func (l *Lock) Save() error {
 	if err != nil {
 		return err
 	}
-
-	dir := filepath.Dir(l.path)
-	tmpFile := filepath.Join(dir, fmt.Sprintf(".%s.tmp", filepath.Base(l.path)))
-
-	if err := os.WriteFile(tmpFile, res, 0644); err != nil {
+	file, err := os.Create(l.path)
+	if err != nil {
 		return err
 	}
-
-	if err := os.Rename(tmpFile, l.path); err != nil {
-		os.Remove(tmpFile) // Clean up temp file if rename fails
+	defer file.Close()
+	w := bufio.NewWriter(file)
+	_, err = w.Write(res)
+	if err != nil {
 		return err
 	}
-
+	w.Flush()
 	return nil
 }
 
