@@ -106,7 +106,22 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 	}
 	var downloadError error = nil
 	for _, u := range l.Urls {
+main
 		log.Debug().Str("URL", u).Msg("Downloading")
+
+		// Download file in the target directory so that the call to
+		// os.Rename is atomic.
+		lpath, err := GetUrlToDir(u, dir, ctx)
+		if err != nil {
+			downloadError = err
+			continue
+		}
+		err = checkIntegrityFromFile(lpath, algo, l.Integrity, u)
+		if err != nil {
+			return err
+		}
+
+main
 		localName := ""
 		if l.Filename != "" {
 			localName = l.Filename
@@ -155,9 +170,17 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 		}
 		ok = true
 	}
+main
 
 	if !ok && downloadError != nil {
 		return downloadError
+
+	if !ok {
+		if downloadError != nil {
+			return downloadError
+		}
+		return err
+main
 	}
 	return nil
 }
