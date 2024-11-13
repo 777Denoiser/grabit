@@ -130,7 +130,6 @@ func TestRunDownloadFailsIntegrityTest(t *testing.T) {
 	assert.Contains(t, err.Error(), "integrity mismatch")
 }
 
-main
 func TestOptimization(t *testing.T) {
 	// Setup test server
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -198,5 +197,4 @@ func TestRunDownloadTriesAllUrls(t *testing.T) {
 	for _, file := range []string{"test.html"} {
 		test.AssertFileContains(t, fmt.Sprintf("%s/%s", outputDir, file), content)
 	}
-main
 }
