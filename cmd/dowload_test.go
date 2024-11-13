@@ -179,8 +179,8 @@ func TestOptimization(t *testing.T) {
 		err = lock.Download(tmpDir, nil, nil, "")
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "integrity mismatch")
-
 	})
+}
 
 func TestRunDownloadTriesAllUrls(t *testing.T) {
 	content := `abcdef`
