@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
-
+	
 	"github.com/carlmjohnson/requests"
 )
 
@@ -65,7 +65,9 @@ func getUrl(u string, fileName string, ctx context.Context) (string, error) {
 
 // GetUrlToDir downloads the given resource to a temporary file and returns the path to it.
 // Modify the GetUrlToDir function to ensure proper file cleanup
-func GetUrlToDir(u string, targetDir string, ctx context.Context) (string, error) {
+func GetUrlToDir(u string, targetDir string, ctx context.Context) 
+(string, error) {
+	// create temporary name in the target directory.
 	h := sha256.New()
 	h.Write([]byte(u))
 	fileName := filepath.Join(targetDir, fmt.Sprintf(".%s", hex.EncodeToString(h.Sum(nil))))
@@ -89,6 +91,7 @@ func GetUrlToDir(u string, targetDir string, ctx context.Context) (string, error
 	return fileName, nil
 }
 
+// GetUrlWithDir downloads the given resource to a temporary file and returns the path to it.
 func GetUrltoTempFile(u string, ctx context.Context) (string, error) {
 	file, err := os.CreateTemp("", "prefix")
 	if err != nil {
@@ -107,6 +110,19 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 	var downloadError error = nil
 	for _, u := range l.Urls {
 		log.Debug().Str("URL", u).Msg("Downloading")
+
+		// Download file in the target directory so that the call to
+		// os.Rename is atomic.
+		lpath, err := GetUrlToDir(u, dir, ctx)
+		if err != nil {
+			downloadError = err
+			continue
+		}
+		err = checkIntegrityFromFile(lpath, algo, l.Integrity, u)
+		if err != nil {
+			return err
+		}
+
 		localName := ""
 		if l.Filename != "" {
 			localName = l.Filename
@@ -158,9 +174,16 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 
 	if !ok && downloadError != nil {
 		return downloadError
+
+	if !ok {
+		if downloadError != nil {
+			return downloadError
+		}
+		return err
 	}
 	return nil
 }
+
 func (l *Resource) Contains(url string) bool {
 	for _, u := range l.Urls {
 		if u == url {
