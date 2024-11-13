@@ -177,6 +177,8 @@ func TestOptimization(t *testing.T) {
 		require.NoError(t, err)
 
 		err = lock.Download(tmpDir, nil, nil, "")
-		require.NoError(t, err)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "integrity mismatch")
+
 	})
 }
