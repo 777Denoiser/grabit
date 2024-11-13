@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
-
 	"github.com/carlmjohnson/requests"
 )
 
@@ -106,7 +105,6 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 	}
 	var downloadError error = nil
 	for _, u := range l.Urls {
-main
 		log.Debug().Str("URL", u).Msg("Downloading")
 
 		// Download file in the target directory so that the call to
@@ -121,7 +119,6 @@ main
 			return err
 		}
 
-main
 		localName := ""
 		if l.Filename != "" {
 			localName = l.Filename
@@ -170,7 +167,6 @@ main
 		}
 		ok = true
 	}
-main
 
 	if !ok && downloadError != nil {
 		return downloadError
@@ -180,7 +176,6 @@ main
 			return downloadError
 		}
 		return err
-main
 	}
 	return nil
 }
