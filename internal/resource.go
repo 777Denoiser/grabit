@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
-	
+
 	"github.com/carlmjohnson/requests"
 )
 
