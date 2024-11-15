@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
-	
+
 	"github.com/carlmjohnson/requests"
 )
 
@@ -65,15 +65,11 @@ func getUrl(u string, fileName string, ctx context.Context) (string, error) {
 
 // GetUrlToDir downloads the given resource to a temporary file and returns the path to it.
 // Modify the GetUrlToDir function to ensure proper file cleanup
-func GetUrlToDir(u string, targetDir string, ctx context.Context) 
-(string, error) {
+func GetUrlToDir(u string, targetDir string, ctx context.Context) (string, error) {
 	// create temporary name in the target directory.
 	h := sha256.New()
 	h.Write([]byte(u))
 	fileName := filepath.Join(targetDir, fmt.Sprintf(".%s", hex.EncodeToString(h.Sum(nil))))
-
-	// Remove existing file if present
-	os.Remove(fileName)
 
 	// Create new file with immediate close
 	file, err := os.Create(fileName)
@@ -144,7 +140,7 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 		}
 
 		// Download file with proper cleanup
-		lpath, err := GetUrlToDir(u, dir, ctx)
+		lpath, err = GetUrlToDir(u, dir, ctx)
 		if err != nil {
 			downloadError = fmt.Errorf("failed to download '%s': %v", u, err)
 			continue
@@ -171,9 +167,6 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 		}
 		ok = true
 	}
-
-	if !ok && downloadError != nil {
-		return downloadError
 
 	if !ok {
 		if downloadError != nil {
