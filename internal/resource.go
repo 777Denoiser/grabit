@@ -107,18 +107,6 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 	for _, u := range l.Urls {
 		log.Debug().Str("URL", u).Msg("Downloading")
 
-		// Download file in the target directory so that the call to
-		// os.Rename is atomic.
-		lpath, err := GetUrlToDir(u, dir, ctx)
-		if err != nil {
-			downloadError = err
-			continue
-		}
-		err = checkIntegrityFromFile(lpath, algo, l.Integrity, u)
-		if err != nil {
-			return err
-		}
-
 		localName := ""
 		if l.Filename != "" {
 			localName = l.Filename
@@ -127,9 +115,11 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 		}
 		resPath := filepath.Join(dir, localName)
 
-		// Check if file exists and is valid
-		if ValidateLocalFile(resPath, l.Integrity) {
-			log.Debug().Msgf("Using existing validated file: %s", resPath)
+		// Check existing file first
+		if _, err := os.Stat(resPath); err == nil {
+			if !ValidateLocalFile(resPath, l.Integrity) {
+				return fmt.Errorf("integrity mismatch for '%s'", resPath)
+			}
 			if mode != NoFileMode {
 				if err := os.Chmod(resPath, mode.Perm()); err != nil {
 					return err
@@ -139,25 +129,25 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 			continue
 		}
 
-		// Download file with proper cleanup
-		lpath, err = GetUrlToDir(u, dir, ctx)
+		// Download new file
+		lpath, err := GetUrlToDir(u, dir, ctx)
 		if err != nil {
 			downloadError = fmt.Errorf("failed to download '%s': %v", u, err)
 			continue
 		}
 
-		// Validate and move file
+		// Validate downloaded file
 		if err := checkIntegrityFromFile(lpath, algo, l.Integrity, u); err != nil {
 			os.Remove(lpath)
 			downloadError = err
 			continue
 		}
 
-		// Remove target file if it exists
-		os.Remove(resPath)
+		// Move to final location
 		if err := os.Rename(lpath, resPath); err != nil {
 			os.Remove(lpath)
-			return err
+			downloadError = err
+			continue
 		}
 
 		if mode != NoFileMode {
@@ -166,17 +156,14 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 			}
 		}
 		ok = true
+		break
 	}
 
 	if !ok {
-		if downloadError != nil {
-			return downloadError
-		}
-		return err
+		return downloadError
 	}
 	return nil
 }
-
 func (l *Resource) Contains(url string) bool {
 	for _, u := range l.Urls {
 		if u == url {

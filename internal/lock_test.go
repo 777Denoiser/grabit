@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/cisco-open/grabit/test"
@@ -18,7 +19,6 @@ func TestNewLockInvalid(t *testing.T) {
 	_, err := NewLock("/u/d/x/invalid", false)
 	assert.NotNil(t, err)
 }
-
 func TestNewLockValid(t *testing.T) {
 	path := test.TmpFile(t, `
 	[[Resource]]
@@ -28,12 +28,30 @@ func TestNewLockValid(t *testing.T) {
 `)
 	lock, err := NewLock(path, false)
 	assert.Nil(t, err)
+
 	assert.Equal(t, 1, len(lock.conf.Resource))
 	statement := lock.conf.Resource[0]
 	assert.Equal(t, "sha256-asdasdasd", statement.Integrity)
 	assert.Equal(t, []string{"tag1", "tag2"}, statement.Tags)
+
+	runtime.GC() // Release resources
 }
 
+func TestDuplicateResource(t *testing.T) {
+	url := "http://localhost:123456/test.html"
+	path := test.TmpFile(t, fmt.Sprintf(`
+		[[Resource]]
+		Urls = ['%s']
+		Integrity = 'sha256-asdasdasd'`, url))
+	lock, err := NewLock(path, false)
+	assert.Nil(t, err)
+
+	err = lock.AddResource([]string{url}, "sha512", []string{}, "")
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "already present")
+
+	runtime.GC() // Release resources
+}
 func TestLockManipulations(t *testing.T) {
 	path := test.TmpFile(t, `
 	[[Resource]]
@@ -58,19 +76,6 @@ func TestLockManipulations(t *testing.T) {
 	assert.Nil(t, err)
 	lock.DeleteResource(resource)
 	assert.Equal(t, 1, len(lock.conf.Resource))
-}
-
-func TestDuplicateResource(t *testing.T) {
-	url := "http://localhost:123456/test.html"
-	path := test.TmpFile(t, fmt.Sprintf(`
-		[[Resource]]
-		Urls = ['%s']
-		Integrity = 'sha256-asdasdasd'`, url))
-	lock, err := NewLock(path, false)
-	assert.Nil(t, err)
-	err = lock.AddResource([]string{url}, "sha512", []string{}, "")
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "already present")
 }
 
 func TestStrToFileMode(t *testing.T) {
