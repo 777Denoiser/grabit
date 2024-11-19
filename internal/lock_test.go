@@ -34,21 +34,6 @@ func TestNewLockValid(t *testing.T) {
 	assert.Equal(t, []string{"tag1", "tag2"}, statement.Tags)
 }
 
-func TestDuplicateResource(t *testing.T) {
-	url := "http://localhost:123456/test.html"
-	path := test.TmpFile(t, fmt.Sprintf(`
-		[[Resource]]
-		Urls = ['%s']
-		Integrity = 'sha256-asdasdasd'`, url))
-	lock, err := NewLock(path, false)
-	assert.Nil(t, err)
-
-	err = lock.AddResource([]string{url}, "sha512", []string{}, "")
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "already present")
-
-	runtime.GC() // Release resources
-}
 func TestLockManipulations(t *testing.T) {
 	path := test.TmpFile(t, `
 	[[Resource]]
@@ -73,6 +58,19 @@ func TestLockManipulations(t *testing.T) {
 	assert.Nil(t, err)
 	lock.DeleteResource(resource)
 	assert.Equal(t, 1, len(lock.conf.Resource))
+}
+
+func TestDuplicateResource(t *testing.T) {
+	url := "http://localhost:123456/test.html"
+	path := test.TmpFile(t, fmt.Sprintf(`
+		[[Resource]]
+		Urls = ['%s']
+		Integrity = 'sha256-asdasdasd'`, url))
+	lock, err := NewLock(path, false)
+	assert.Nil(t, err)
+	err = lock.AddResource([]string{url}, "sha512", []string{}, "")
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "already present")
 }
 
 func TestStrToFileMode(t *testing.T) {
