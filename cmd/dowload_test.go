@@ -28,7 +28,7 @@ func TestRunDownload(t *testing.T) {
 	contentIntegrity := getSha256Integrity(content)
 	port := test.TestHttpHandler(content, t)
 	testfilepath := test.TmpFile(t, fmt.Sprintf(`
- 	[[Resource]]
+	[[Resource]]
 	Urls = ['http://localhost:%d/test.html']
 	Integrity = '%s'
 
@@ -51,14 +51,14 @@ func TestRunDownloadWithTags(t *testing.T) {
 	contentIntegrity := getSha256Integrity(content)
 	port := test.TestHttpHandler(content, t)
 	testfilepath := test.TmpFile(t, fmt.Sprintf(`
- 	[[Resource]]
+	[[Resource]]
 	Urls = ['http://localhost:%d/test.html']
 	Integrity = '%s'
 	Tags = ['tag']
 
 	[[Resource]]
 	Urls = ['http://localhost:%d/test2.html']
- 	Integrity = '%s'
+	Integrity = '%s'
 	Tags = ['tag1', 'tag2']
 `, port, contentIntegrity, port, contentIntegrity))
 	outputDir := test.TmpDir(t)
