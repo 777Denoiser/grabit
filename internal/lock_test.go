@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/cisco-open/grabit/test"
@@ -19,6 +18,7 @@ func TestNewLockInvalid(t *testing.T) {
 	_, err := NewLock("/u/d/x/invalid", false)
 	assert.NotNil(t, err)
 }
+
 func TestNewLockValid(t *testing.T) {
 	path := test.TmpFile(t, `
 	[[Resource]]
@@ -28,13 +28,10 @@ func TestNewLockValid(t *testing.T) {
 `)
 	lock, err := NewLock(path, false)
 	assert.Nil(t, err)
-
 	assert.Equal(t, 1, len(lock.conf.Resource))
 	statement := lock.conf.Resource[0]
 	assert.Equal(t, "sha256-asdasdasd", statement.Integrity)
 	assert.Equal(t, []string{"tag1", "tag2"}, statement.Tags)
-
-	runtime.GC() // Release resources
 }
 
 func TestDuplicateResource(t *testing.T) {
