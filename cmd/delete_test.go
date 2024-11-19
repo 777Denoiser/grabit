@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/cisco-open/grabit/test"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRunDelete(t *testing.T) {
