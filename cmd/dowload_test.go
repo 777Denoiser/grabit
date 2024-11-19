@@ -51,17 +51,16 @@ func TestRunDownloadWithTags(t *testing.T) {
 	contentIntegrity := getSha256Integrity(content)
 	port := test.TestHttpHandler(content, t)
 	testfilepath := test.TmpFile(t, fmt.Sprintf(`
-    [[Resource]]
-    Urls = ['http://localhost:%d/test.html']
-    Integrity = '%s'
-    Tags = ['tag']
+    	[[Resource]]
+	Urls = ['http://localhost:%d/test.html']
+    	Integrity = '%s'
+    	Tags = ['tag']
 
-    [[Resource]]
-    Urls = ['http://localhost:%d/test2.html']
-    Integrity = '%s'
-    Tags = ['tag1', 'tag2']
+    	[[Resource]]
+    	Urls = ['http://localhost:%d/test2.html']
+    	Integrity = '%s'
+    	Tags = ['tag1', 'tag2']
 `, port, contentIntegrity, port, contentIntegrity))
-
 	outputDir := test.TmpDir(t)
 	cmd := NewRootCmd()
 	cmd.SetArgs([]string{"-f", testfilepath, "download", "--tag", "tag", "--dir", outputDir})
@@ -89,8 +88,8 @@ func TestRunDownloadMultipleErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "failed to download")
 	assert.Contains(t, err.Error(), "no such host")
-	runtime.GC()
 }
+
 func TestRunDownloadFailsIntegrityTest(t *testing.T) {
 	content := `abcdef`
 	port := test.TestHttpHandler(content, t)
