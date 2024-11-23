@@ -116,9 +116,11 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 
 		// Check existing file first
 		if _, err := os.Stat(resPath); err == nil {
+			// File exists, validate its integrity
 			if !ValidateLocalFile(resPath, l.Integrity) {
 				return fmt.Errorf("integrity mismatch for '%s'", resPath)
 			}
+			// Set file permissions if needed
 			if mode != NoFileMode {
 				if err := os.Chmod(resPath, mode.Perm()); err != nil {
 					return err
@@ -126,6 +128,9 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 			}
 			ok = true
 			continue
+		} else if !os.IsNotExist(err) {
+			// Handle other potential errors from os.Stat
+			return fmt.Errorf("failed to stat file '%s': %v", resPath, err)
 		}
 
 		// Download new file
