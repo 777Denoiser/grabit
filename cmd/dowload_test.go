@@ -65,6 +65,9 @@ func TestRunDownloadWithTags(t *testing.T) {
 	cmd.SetArgs([]string{"-f", testfilepath, "download", "--tag", "tag", "--dir", outputDir})
 	err := cmd.Execute()
 	assert.Nil(t, err)
+	for _, file := range []string{"test.html"} {
+		test.AssertFileContains(t, fmt.Sprintf("%s/%s", outputDir, file), content)
+	}
 }
 
 func TestRunDownloadWithoutTags(t *testing.T) {
@@ -90,9 +93,6 @@ func TestRunDownloadWithoutTags(t *testing.T) {
 	for _, file := range []string{"test2.html"} {
 		test.AssertFileContains(t, fmt.Sprintf("%s/%s", outputDir, file), content)
 	}
-	// Verify downloaded files
-	filePath := filepath.Join(outputDir, "test.html")
-	test.AssertFileContains(t, filePath, content)
 }
 
 func TestRunDownloadMultipleErrors(t *testing.T) {
