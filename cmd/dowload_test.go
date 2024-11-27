@@ -65,6 +65,8 @@ func TestRunDownloadWithTags(t *testing.T) {
 	cmd.SetArgs([]string{"-f", testfilepath, "download", "--tag", "tag", "--dir", outputDir})
 	err := cmd.Execute()
 	assert.Nil(t, err)
+}
+
 func TestRunDownloadWithoutTags(t *testing.T) {
 	content := `abcdef`
 	contentIntegrity := getSha256Integrity(content)
