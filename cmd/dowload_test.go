@@ -65,7 +65,29 @@ func TestRunDownloadWithTags(t *testing.T) {
 	cmd.SetArgs([]string{"-f", testfilepath, "download", "--tag", "tag", "--dir", outputDir})
 	err := cmd.Execute()
 	assert.Nil(t, err)
+func TestRunDownloadWithoutTags(t *testing.T) {
+	content := `abcdef`
+	contentIntegrity := getSha256Integrity(content)
+	port := test.TestHttpHandler(content, t)
+	testfilepath := test.TmpFile(t, fmt.Sprintf(`
+	[[Resource]]
+	Urls = ['http://localhost:%d/test.html']
+	Integrity = '%s'
+	Tags = ['tag']
 
+	[[Resource]]
+	Urls = ['http://localhost:%d/test2.html']
+	Integrity = '%s'
+	Tags = ['tag1', 'tag2']
+`, port, contentIntegrity, port, contentIntegrity))
+	outputDir := test.TmpDir(t)
+	cmd := NewRootCmd()
+	cmd.SetArgs([]string{"-f", testfilepath, "download", "--notag", "tag", "--dir", outputDir})
+	err := cmd.Execute()
+	assert.Nil(t, err)
+	for _, file := range []string{"test2.html"} {
+		test.AssertFileContains(t, fmt.Sprintf("%s/%s", outputDir, file), content)
+	}
 	// Verify downloaded files
 	filePath := filepath.Join(outputDir, "test.html")
 	test.AssertFileContains(t, filePath, content)
