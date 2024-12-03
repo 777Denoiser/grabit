@@ -104,6 +104,8 @@ func (l *Resource) Download(dir string, mode os.FileMode, ctx context.Context) e
 	}
 	var downloadError error = nil
 	for _, u := range l.Urls {
+		// Download file in the target directory so that the call to
+		// os.Rename is atomic.
 		log.Debug().Str("URL", u).Msg("Downloading")
 
 		localName := ""
