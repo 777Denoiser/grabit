@@ -79,7 +79,6 @@ func GetUrlToDir(u string, targetDir string, ctx context.Context) (string, error
 
 	fileName, err = getUrl(u, fileName, ctx)
 	if err != nil {
-		os.Remove(fileName)
 		return "", err
 	}
 
