@@ -69,7 +69,7 @@ func GetUrlToDir(u string, targetDir string, ctx context.Context) (string, error
 	h := sha256.New()
 	h.Write([]byte(u))
 	fileName := filepath.Join(targetDir, fmt.Sprintf(".%s", hex.EncodeToString(h.Sum(nil))))
-		return getUrl(u, filename, ctx)
+	return getUrl(u, fileName, ctx)
 }
 
 // GetUrlWithDir downloads the given resource to a temporary file and returns the path to it.
