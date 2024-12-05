@@ -132,7 +132,10 @@ func TestRunDownloadFailsIntegrityTest(t *testing.T) {
 
 func TestOptimization(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("test content"))
+		_, err := w.Write([]byte("test content"))
+		if err != nil {
+			return
+		}
 	}))
 	defer ts.Close()
 
@@ -147,7 +150,8 @@ func TestOptimization(t *testing.T) {
 		err = lock.AddResource([]string{testUrl}, internal.RecommendedAlgo, nil, "valid_test.txt")
 		require.NoError(t, err)
 
-		err = lock.Download(tmpDir, nil, nil, "")
+		// Update the Download call to match the new signature
+		err = lock.Download(tmpDir, nil, nil, "", false) // Added 'false' for the new boolean argument
 		require.NoError(t, err)
 	})
 
@@ -155,7 +159,6 @@ func TestOptimization(t *testing.T) {
 		tmpDir := test.TmpDir(t)
 		testUrl := ts.URL + "/invalid_test.txt"
 
-		// Create lock file with specific integrity
 		lockPath := test.TmpFile(t, "")
 		lock, err := internal.NewLock(lockPath, true)
 		require.NoError(t, err)
@@ -163,21 +166,20 @@ func TestOptimization(t *testing.T) {
 		err = lock.AddResource([]string{testUrl}, internal.RecommendedAlgo, nil, "invalid_test.txt")
 		require.NoError(t, err)
 
-		// Save lock file
 		err = lock.Save()
 		require.NoError(t, err)
 
-		// Create invalid file
 		invalidPath := filepath.Join(tmpDir, "invalid_test.txt")
 		err = os.WriteFile(invalidPath, []byte("corrupted"), 0644)
 		require.NoError(t, err)
 
-		// Try downloading - should fail with integrity mismatch
-		err = lock.Download(tmpDir, nil, nil, "")
+		// Update the Download call to match the new signature
+		err = lock.Download(tmpDir, nil, nil, "", false) // Added 'false' for the new boolean argument
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "integrity mismatch")
 	})
 }
+
 func TestRunDownloadTriesAllUrls(t *testing.T) {
 	content := `abcdef`
 	contentIntegrity := getSha256Integrity(content)
